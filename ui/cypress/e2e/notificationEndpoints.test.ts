@@ -217,6 +217,46 @@ describe('Notification Endpoints', () => {
     cy.getByTestID('endpoint--overlay').should('not.be.visible')
   })
 
+  // TODO: enable this test when notification-endpoint-teams is ready
+  it.skip('can create a notification endpoint Teams', () => {
+    const name = 'Teams testing Endpoint'
+    const description = 'No description is enough here.'
+    const webhookURL = "https://example.org/hook"
+    const webhookURLSecret = "https://example.org/webhook-0wr565ad33s5"
+
+    cy.getByTestID('create-endpoint').click()
+
+    cy.getByTestID('endpoint-name--input')
+      .clear()
+      .type(name)
+      .should('have.value', name)
+
+    cy.getByTestID('endpoint-description--textarea')
+      .clear()
+      .type(description)
+      .should('have.value', description)
+
+    cy.getByTestID('endpoint-change--dropdown')
+      .click()
+      .within(() => {
+        cy.getByTestID('endpoint--dropdown-item teams').click()
+      })
+
+    cy.getByTestID('teams-url')
+      .clear()
+      .type(webhookURL)
+      .should('have.value', webhookURL)
+
+    cy.getByTestID('teams-secretURLSuffix')
+      .clear()
+      .type(webhookURLSecret)
+      .should('have.value', webhookURLSecret)
+
+    cy.getByTestID('endpoint-save--button').click()
+    cy.getByTestID(`endpoint-card ${name}`).should('exist')
+    cy.getByTestID('endpoint--overlay').should('not.be.visible')
+  })
+
   it('can edit a notification endpoint', () => {
     cy.get<SlackNotificationEndpoint>('@endpoint').then(endpoint => {
       const {name, description, url} = endpoint
