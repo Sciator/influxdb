@@ -5,6 +5,7 @@ import {
 } from '../../src/types'
 
 describe('Notification Endpoints', () => {
+  // todo: fix tsc error: missing activeStatus, labels
   const endpoint: NotificationEndpoint = {
     orgID: '',
     name: 'Pre-Created Endpoint',
@@ -19,24 +20,68 @@ describe('Notification Endpoints', () => {
   beforeEach(() => {
     cy.flush()
 
-    cy.signin().then(({body}) => {
+    cy.signin().then(({ body }) => {
       const {
-        org: {id},
+        org: { id },
       } = body
       cy.wrap(body.org).as('org')
-      cy.fixture('routes').then(({orgs, alerting}) => {
-        cy.createEndpoint({...endpoint, orgID: id}).then(({body}) => {
+      cy.fixture('routes').then(({ orgs, alerting }) => {
+        cy.createEndpoint({ ...endpoint, orgID: id }).then(({ body }) => {
           cy.wrap(body).as('endpoint')
         })
         cy.visit(`${orgs}/${id}${alerting}`)
 
         // User can only see all panels at once on large screens
-        cy.getByTestID('alerting-tab--endpoints').click({force: true})
+        cy.getByTestID('alerting-tab--endpoints').click({ force: true })
       })
     })
   })
 
-  it('can create a notification endpoint', () => {
+  it('can create a notification endpoint HTTP', () => {
+    const name = 'HTTP testing Endpoint'
+    const description = 'Some clever description text.'
+    const token = "-testToken-blah666!$%%+§§"
+
+    cy.getByTestID('create-endpoint').click()
+
+    cy.getByTestID('endpoint-name--input')
+      .clear()
+      .type(name)
+      .should('have.value', name)
+
+    cy.getByTestID('endpoint-description--textarea')
+      .clear()
+      .type(description)
+      .should('have.value', description)
+
+    cy.getByTestID('endpoint-change--dropdown')
+      .click()
+      .within(() => {
+        cy.getByTestID('endpoint--dropdown-item http').click()
+      })
+
+    cy.getByTestID('http-url')
+      .clear()
+      .type('http.url.us')
+      .should('have.value', 'http.url.us')
+
+    cy.getByTestID('http-authMethod-change--dropdown')
+      .click()
+      .within(() => {
+        cy.getByTestID('http-authMethod--dropdown-item bearer').click()
+      })
+
+    cy.getByTestID('http-bearer-token')
+      .clear()
+      .type(token)
+      .should('have.value', token)
+
+    cy.getByTestID('endpoint-save--button').click()
+    cy.getByTestID(`endpoint-card ${name}`).should('exist')
+    cy.getByTestID('endpoint--overlay').should('not.be.visible')
+  })
+
+  it('can create a notification endpoint slack', () => {
     const name = 'An Endpoint Has No Name'
     const description =
       'A minute, an hour, a month. Notification Endpoint is certain. The time is not.'
